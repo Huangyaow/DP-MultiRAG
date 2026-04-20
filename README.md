@@ -54,14 +54,3 @@ Useful flags:
 | `--budget-floor`  | `0.3`                         | refuse when remaining budget falls below this    |
 | `--decay`         | `0.85`                        | exposure decay factor between turns              |
 | `--top-k`         | `2`                           | candidates retrieved per turn                    |
-
-## What you should see
-
-- Turns 1-3 ask low-sensitivity meta questions (reporter, branch, incident
-  type). Risk stays under the threshold, evidence is **not** redacted, the
-  model answers normally.
-- Turn 4 (`Which records were affected?`) hits the high-sensitivity span
-  `employee IDs 4821-4835`. Risk crosses `--risk-high`, **Step 3** redacts
-  the IDs, and the answer becomes a controlled refusal.
-- Turn 5-6 deplete the per-document budget; the gate in `demo.py` returns a
-  hard refusal without even calling the LLM.
