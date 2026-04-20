@@ -1,0 +1,21 @@
+[
+  {
+    "id": "incident_452",
+    "text": "Alice from the Singapore branch reported a payroll data incident on Monday involving employee IDs 4821-4835. The response team recommended immediate account suspension, forensic review of the affected accounts, and a follow-up meeting next Tuesday at 10:00 AM in conference room B-301 to coordinate remediation.",
+    "sensitive_spans": [
+      {"text": "Alice", "tier": "low"},
+      {"text": "Singapore branch", "tier": "low"},
+      {"text": "payroll data incident", "tier": "low"},
+      {"text": "employee IDs 4821-4835", "tier": "high"},
+      {"text": "next Tuesday at 10:00 AM", "tier": "high"},
+      {"text": "conference room B-301", "tier": "high"},
+      {"text": "immediate account suspension", "tier": "high"},
+      {"text": "forensic review of the affected accounts", "tier": "high"}
+    ]
+  },
+  {
+    "id": "hr_policy",
+    "text": "HR policy requires that any payroll-related incident must be reported within 24 hours. All reports should follow the standard incident-response template and be filed with the security team.",
+    "sensitive_spans": []
+  }
+]
