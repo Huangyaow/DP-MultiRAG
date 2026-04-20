@@ -1,4 +1,4 @@
-# DP-RAG minimal demo
+# DP-MultiRAG
 
 End-to-end run of the 6-step **History-Aware DP-RAG** pipeline against a
 hard-coded multi-turn cumulative-leakage attack trajectory. Every
