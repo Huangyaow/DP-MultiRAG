@@ -1,0 +1,32 @@
+[
+  {
+    "answer": "Alice reported the incident.",
+    "disclosure": 1.0,
+    "comment": "low-tier span, full disclosure"
+  },
+  {
+    "answer": "It was reported by the Singapore branch.",
+    "disclosure": 1.0,
+    "comment": "low-tier span, full disclosure"
+  },
+  {
+    "answer": "It involved a payroll-related data issue.",
+    "disclosure": 1.0,
+    "comment": "low-tier span, full disclosure"
+  },
+  {
+    "answer": "Specific affected identifiers are protected.",
+    "disclosure": 0.4,
+    "comment": "high-tier span -> abstracted refusal, partial \u03b5^gen charge"
+  },
+  {
+    "answer": "Detailed mitigation records cannot be disclosed.",
+    "disclosure": 0.3,
+    "comment": "high-tier span -> abstracted refusal, partial \u03b5^gen charge"
+  },
+  {
+    "answer": "Insufficient privacy budget. Follow-up scheduling details are protected.",
+    "disclosure": 0.0,
+    "comment": "ledger close to cap -> hard refusal, no \u03b5^gen charge"
+  }
+]

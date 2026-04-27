@@ -1,0 +1,328 @@
+
+========================================================================
+Round 1/6   ε_t^ret=0.050  ε_t^trans=0.033  ε_t^gen=0.083
+========================================================================
+[User] Who reported the incident?
+[M1 Rewrite] Who reported the incident?
+[M1 Score+Φ] meeting_room_index:Score=+0.40(Rel=0.00,Φ=0.00)  press_template:Score=+0.74(Rel=0.34,Φ=0.00)  security_contact:Score=+0.38(Rel=0.00,Φ=0.03)  audit_log_policy:Score=+0.40(Rel=0.00,Φ=0.00)  hr_policy:Score=+1.40(Rel=1.00,Φ=0.00)  ir_runbook:Score=+0.74(Rel=0.34,Φ=0.00)  remediation_runbook:Score=+0.44(Rel=0.34,Φ=0.50)  datacenter_map:Score=+0.37(Rel=0.00,Φ=0.05)  training_schedule:Score=+0.40(Rel=0.00,Φ=0.00)  incident_453:Score=+0.10(Rel=0.00,Φ=0.50)
+[M1 GumbelTopK] selected=['meeting_room_index', 'press_template', 'security_contact', 'audit_log_policy', 'hr_policy', 'ir_runbook', 'remediation_runbook', 'datacenter_map', 'training_schedule', 'incident_453']
+[M1 Δε^ret] meeting_room_index:0.004  press_template:0.006  security_contact:0.004  audit_log_policy:0.004  hr_policy:0.011  ir_runbook:0.006  remediation_runbook:0.004  datacenter_map:0.004  training_schedule:0.004  incident_453:0.003
+[M2 σ_trans] 1453441.579
+[M2 [meeting_room_index:identity  Δε^trans=0.000]] Meeting rooms are organised by tower (A, B, T, F). Booking is done through the calendar app and rooms have a maximum capacity printed on the door.
+[M2 [press_template:identity  Δε^trans=0.000]] Public communication about any security incident must use the official press template and be approved by both the legal team and the head of security before rel…
+[M2 [security_contact:identity  Δε^trans=0.000]] All security-related questions should be directed to the on-call channel #sec-oncall. The on-call rota is rotated weekly and published in the internal directory…
+[M2 [audit_log_policy:identity  Δε^trans=0.000]] All access to restricted data is logged centrally for at least 18 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated to the…
+[M2 [hr_policy:identity  Δε^trans=0.000]] HR policy requires that any payroll-related incident must be reported within 24 hours. All reports should follow the standard incident-response template and be …
+[M2 [ir_runbook:identity  Δε^trans=0.000]] The standard incident-response template covers four phases: detection, containment, eradication, and recovery. Each phase has a checklist and a designated owner…
+[M2 [remediation_runbook:abstract+gauss  Δε^trans=0.027]] Standard remediation for a payroll incident is: [ABSTRACTED], [ABSTRACTED], snapshot the relevant systems, and open a postmortem ticket within ~-393684 hours.
+[M2 [datacenter_map:identity  Δε^trans=0.000]] The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.
+[M2 [training_schedule:identity  Δε^trans=0.000]] Quarterly security training is mandatory for all employees and is delivered through the internal LMS. New joiners must complete it within 30 days of onboarding.
+[M2 [incident_453:abstract+gauss  Δε^trans=0.027]] Bob from the Tokyo office filed a separate phishing report on Wednesday referencing [NUMERIC_RANGE]. Follow-up training was scheduled for [NUMERIC_RANGE] in [NU…
+[M2 Sufficiency] r_suf=0.74  action=generate
+[M3 mode] reference-answer decode
+[M3 σ_gen(τ)] min=232.55 max=232.55 n_tok=4
+[M3 Δε^gen] meeting_room_index:0.008  press_template:0.008  security_contact:0.008  audit_log_policy:0.008  hr_policy:0.008  ir_runbook:0.008  remediation_runbook:0.008  datacenter_map:0.008  training_schedule:0.008  incident_453:0.008
+[M3 Answer] Alice reported the incident.
+[M4 Ledger] (see Final Ledger at the end)
+[M4 Ledger] meeting_room_index: E=0.67 ε(r/t/g)=0.00/0.00/0.01 | press_template: E=0.67 ε(r/t/g)=0.01/0.00/0.01 | security_contact: E=0.67 ε(r/t/g)=0.00/0.00/0.01 | audit_log_policy: E=0.67 ε(r/t/g)=0.00/0.00/0.01 | hr_policy: E=0.67 ε(r/t/g)=0.01/0.00/0.01 | ir_runbook: E=0.67 ε(r/t/g)=0.01/0.00/0.01 | remediation_runbook: E=1.00 ε(r/t/g)=0.00/0.03/0.01 | datacenter_map: E=0.67 ε(r/t/g)=0.00/0.00/0.01 | training_schedule: E=0.67 ε(r/t/g)=0.00/0.00/0.01 | incident_453: E=1.00 ε(r/t/g)=0.00/0.03/0.01
+
+========================================================================
+Round 2/6   ε_t^ret=0.050  ε_t^trans=0.033  ε_t^gen=0.083
+========================================================================
+[User] Which branch was involved?
+[M1 Rewrite] Which branch was involved?
+[M1 Score+Φ] press_template:Score=+0.28(Rel=0.00,Φ=0.20)  ir_runbook:Score=+0.28(Rel=0.00,Φ=0.20)  security_contact:Score=+0.25(Rel=0.00,Φ=0.25)  incident_452:Score=+1.07(Rel=1.00,Φ=0.55)  datacenter_map:Score=+0.24(Rel=0.00,Φ=0.27)  vendor_list:Score=+0.40(Rel=0.00,Φ=0.00)  training_schedule:Score=+0.28(Rel=0.00,Φ=0.20)  incident_453:Score=-0.09(Rel=0.00,Φ=0.82)  audit_log_policy:Score=+0.28(Rel=0.00,Φ=0.20)  vpn_guide:Score=+0.40(Rel=0.00,Φ=0.00)
+[M1 GumbelTopK] selected=['press_template', 'ir_runbook', 'security_contact', 'incident_452', 'datacenter_map', 'vendor_list', 'training_schedule', 'incident_453', 'audit_log_policy', 'vpn_guide']
+[M1 Δε^ret] press_template:0.005  ir_runbook:0.005  security_contact:0.004  incident_452:0.010  datacenter_map:0.004  vendor_list:0.005  training_schedule:0.005  incident_453:0.003  audit_log_policy:0.005  vpn_guide:0.005
+[M2 σ_trans] 1453441.579
+[M2 [press_template:identity  Δε^trans=0.000]] Public communication about any security incident must use the official press template and be approved by both the legal team and the head of security before rel…
+[M2 [ir_runbook:identity  Δε^trans=0.000]] The standard incident-response template covers four phases: detection, containment, eradication, and recovery. Each phase has a checklist and a designated owner…
+[M2 [security_contact:abstract+gauss  Δε^trans=0.023]] All security-related questions should be directed to the on-call channel #sec-oncall. The on-call rota is rotated weekly and published in the internal directory…
+[M2 [incident_452:abstract+gauss  Δε^trans=0.027]] Alice from the Singapore branch reported a payroll data incident on Monday involving [NUMERIC_RANGE]. The response team recommended [ABSTRACTED], [ABSTRACTED], …
+[M2 [datacenter_map:abstract+gauss  Δε^trans=0.024]] The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.
+[M2 [vendor_list:identity  Δε^trans=0.000]] Approved cloud vendors include AWS, Azure and GCP. Engagements with new vendors require a procurement review and a security questionnaire.
+[M2 [training_schedule:identity  Δε^trans=0.000]] Quarterly security training is mandatory for all employees and is delivered through the internal LMS. New joiners must complete it within 30 days of onboarding.
+[M2 [incident_453:redact+abstract  Δε^trans=0.031]] [NAME] from the [LOCATION] filed a separate [ABSTRACTED] on Wednesday referencing [REDACTED]. Follow-up training was scheduled for [REDACTED] in [REDACTED].
+[M2 [audit_log_policy:identity  Δε^trans=0.000]] All access to restricted data is logged centrally for at least 18 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated to the…
+[M2 [vpn_guide:identity  Δε^trans=0.000]] Employees connecting from outside the corporate network must use the company VPN with multi-factor authentication. The VPN client is provisioned automatically o…
+[M2 Sufficiency] r_suf=0.54  action=generate
+[M3 mode] reference-answer decode
+[M3 σ_gen(τ)] min=232.55 max=232.55 n_tok=7
+[M3 Δε^gen] press_template:0.008  ir_runbook:0.008  security_contact:0.008  incident_452:0.008  datacenter_map:0.008  vendor_list:0.008  training_schedule:0.008  incident_453:0.008  audit_log_policy:0.008  vpn_guide:0.008
+[M3 Answer] It was reported by the Singapore branch.
+[M4 Ledger] (see Final Ledger at the end)
+[M4 Ledger] press_template: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | ir_runbook: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | security_contact: E=1.67 ε(r/t/g)=0.01/0.02/0.02 | incident_452: E=1.00 ε(r/t/g)=0.01/0.03/0.01 | datacenter_map: E=1.67 ε(r/t/g)=0.01/0.02/0.02 | vendor_list: E=0.67 ε(r/t/g)=0.01/0.00/0.01 | training_schedule: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | incident_453: E=2.00 ε(r/t/g)=0.01/0.06/0.02 | audit_log_policy: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | vpn_guide: E=0.67 ε(r/t/g)=0.01/0.00/0.01
+
+========================================================================
+Round 3/6   ε_t^ret=0.050  ε_t^trans=0.033  ε_t^gen=0.083
+========================================================================
+[User] What type of incident was reported?
+[M1 Rewrite] What type of incident was reported?
+[M1 Score+Φ] meeting_room_index:Score=+0.28(Rel=0.00,Φ=0.20)  vendor_list:Score=+0.28(Rel=0.00,Φ=0.20)  vpn_guide:Score=+0.28(Rel=0.00,Φ=0.20)  incident_453:Score=-0.10(Rel=0.00,Φ=0.83)  data_classification:Score=+0.26(Rel=0.00,Φ=0.24)  datacenter_map:Score=+0.17(Rel=0.00,Φ=0.38)  audit_log_policy:Score=+0.22(Rel=0.00,Φ=0.30)  hr_policy:Score=+1.28(Rel=1.00,Φ=0.20)  security_contact:Score=+0.18(Rel=0.00,Φ=0.36)  remediation_runbook:Score=+0.25(Rel=0.34,Φ=0.83)
+[M1 GumbelTopK] selected=['meeting_room_index', 'vendor_list', 'vpn_guide', 'incident_453', 'data_classification', 'datacenter_map', 'audit_log_policy', 'hr_policy', 'security_contact', 'remediation_runbook']
+[M1 Δε^ret] meeting_room_index:0.005  vendor_list:0.005  vpn_guide:0.005  incident_453:0.003  data_classification:0.004  datacenter_map:0.004  audit_log_policy:0.004  hr_policy:0.012  security_contact:0.004  remediation_runbook:0.004
+[M2 σ_trans] 1453441.579
+[M2 [meeting_room_index:identity  Δε^trans=0.000]] Meeting rooms are organised by tower (A, B, T, F). Booking is done through the calendar app and rooms have a maximum capacity printed on the door.
+[M2 [vendor_list:identity  Δε^trans=0.000]] Approved cloud vendors include AWS, Azure and GCP. Engagements with new vendors require a procurement review and a security questionnaire.
+[M2 [vpn_guide:identity  Δε^trans=0.000]] Employees connecting from outside the corporate network must use the company VPN with multi-factor authentication. The VPN client is provisioned automatically o…
+[M2 [incident_453:redact+abstract  Δε^trans=0.031]] [NAME] from the [LOCATION] filed a separate [ABSTRACTED] on Wednesday referencing [REDACTED]. Follow-up training was scheduled for [REDACTED] in [REDACTED].
+[M2 [data_classification:abstract+gauss  Δε^trans=0.023]] Data is classified into Public, Internal, Confidential, and Restricted. Restricted data such as payroll, medical, and [ABSTRACTED] must remain within the secure…
+[M2 [datacenter_map:abstract+gauss  Δε^trans=0.025]] The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.
+[M2 [audit_log_policy:abstract+gauss  Δε^trans=0.024]] All access to restricted data is logged centrally for at least ~651592 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated t…
+[M2 [hr_policy:identity  Δε^trans=0.000]] HR policy requires that any payroll-related incident must be reported within 24 hours. All reports should follow the standard incident-response template and be …
+[M2 [security_contact:abstract+gauss  Δε^trans=0.025]] All security-related questions should be directed to the on-call channel #sec-oncall. The on-call rota is rotated weekly and published in the internal directory…
+[M2 [remediation_runbook:redact+abstract  Δε^trans=0.031]] Standard remediation for a payroll incident is: [REDACTED], [REDACTED], snapshot the relevant systems, and open a postmortem ticket within 48 hours.
+[M2 Sufficiency] r_suf=0.54  action=generate
+[M3 mode] reference-answer decode
+[M3 σ_gen(τ)] min=232.55 max=232.55 n_tok=6
+[M3 Δε^gen] meeting_room_index:0.008  vendor_list:0.008  vpn_guide:0.008  incident_453:0.008  data_classification:0.008  datacenter_map:0.008  audit_log_policy:0.008  hr_policy:0.008  security_contact:0.008  remediation_runbook:0.008
+[M3 Answer] It involved a payroll-related data issue.
+[M4 Ledger] (see Final Ledger at the end)
+[M4 Ledger] meeting_room_index: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | vendor_list: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | vpn_guide: E=1.33 ε(r/t/g)=0.01/0.00/0.02 | incident_453: E=3.00 ε(r/t/g)=0.01/0.09/0.03 | data_classification: E=1.00 ε(r/t/g)=0.00/0.02/0.01 | datacenter_map: E=2.67 ε(r/t/g)=0.01/0.05/0.03 | audit_log_policy: E=2.33 ε(r/t/g)=0.01/0.02/0.03 | hr_policy: E=1.33 ε(r/t/g)=0.02/0.00/0.02 | security_contact: E=2.67 ε(r/t/g)=0.01/0.05/0.03 | remediation_runbook: E=2.00 ε(r/t/g)=0.01/0.06/0.02
+
+========================================================================
+Round 4/6   ε_t^ret=0.050  ε_t^trans=0.033  ε_t^gen=0.083
+========================================================================
+[User] Which records were affected?
+[M1 Rewrite] Which records were affected?
+[M1 Score+Φ] data_classification:Score=+1.02(Rel=1.00,Φ=0.63)  vendor_list:Score=+0.22(Rel=0.00,Φ=0.30)  audit_log_policy:Score=+0.22(Rel=0.00,Φ=0.30)  training_schedule:Score=+0.22(Rel=0.00,Φ=0.30)  press_template:Score=+0.22(Rel=0.00,Φ=0.30)  remediation_runbook:Score=+0.68(Rel=0.83,Φ=0.92)  incident_452:Score=+0.44(Rel=0.59,Φ=0.92)  security_contact:Score=+0.18(Rel=0.00,Φ=0.37)  ir_runbook:Score=+0.22(Rel=0.00,Φ=0.30)  datacenter_map:Score=+0.16(Rel=0.00,Φ=0.39)
+[M1 GumbelTopK] selected=['data_classification', 'vendor_list', 'audit_log_policy', 'training_schedule', 'press_template', 'remediation_runbook', 'incident_452', 'security_contact', 'ir_runbook', 'datacenter_map']
+[M1 Δε^ret] data_classification:0.009  vendor_list:0.004  audit_log_policy:0.004  training_schedule:0.004  press_template:0.004  remediation_runbook:0.007  incident_452:0.005  security_contact:0.004  ir_runbook:0.004  datacenter_map:0.004
+[M2 σ_trans] 1453441.579
+[M2 [data_classification:redact+abstract  Δε^trans=0.028]] Data is classified into Public, Internal, Confidential, and Restricted. Restricted data such as [ABSTRACTED], [ABSTRACTED], and [REDACTED] must remain within th…
+[M2 [vendor_list:abstract+gauss  Δε^trans=0.024]] Approved cloud vendors include AWS, Azure and GCP. Engagements with new vendors require a procurement review and a security questionnaire.
+[M2 [audit_log_policy:abstract+gauss  Δε^trans=0.024]] All access to restricted data is logged centrally for at least ~311847 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated t…
+[M2 [training_schedule:abstract+gauss  Δε^trans=0.024]] Quarterly security training is mandatory for all employees and is delivered through the internal LMS. New joiners must complete it within ~-1400775 days of onbo…
+[M2 [press_template:abstract+gauss  Δε^trans=0.024]] Public communication about any security incident must use the official press template and be approved by both the legal team and the head of security before rel…
+[M2 [remediation_runbook:redact+abstract  Δε^trans=0.032]] Standard remediation for a payroll incident is: [REDACTED], [REDACTED], snapshot the relevant systems, and open a postmortem ticket within 48 hours.
+[M2 [incident_452:redact+abstract  Δε^trans=0.032]] [NAME] from the [LOCATION] reported a [ABSTRACTED] on Monday involving [REDACTED]. The response team recommended [REDACTED], [REDACTED], and a follow-up meeting…
+[M2 [security_contact:abstract+gauss  Δε^trans=0.025]] All security-related questions should be directed to the on-call channel #sec-oncall. The on-call rota is rotated weekly and published in the internal directory…
+[M2 [ir_runbook:abstract+gauss  Δε^trans=0.024]] The standard incident-response template covers four phases: detection, containment, eradication, and recovery. Each phase has a checklist and a designated owner…
+[M2 [datacenter_map:abstract+gauss  Δε^trans=0.025]] The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.
+[M2 Sufficiency] r_suf=0.47  action=generate
+[M3 mode] reference-answer decode
+[M3 σ_gen(τ)] min=581.38 max=581.38 n_tok=5
+[M3 Δε^gen] data_classification:0.003  vendor_list:0.003  audit_log_policy:0.003  training_schedule:0.003  press_template:0.003  remediation_runbook:0.003  incident_452:0.003  security_contact:0.003  ir_runbook:0.003  datacenter_map:0.003
+[M3 Answer] Specific affected identifiers are protected.
+[M4 Ledger] (see Final Ledger at the end)
+[M4 Ledger] data_classification: E=2.00 ε(r/t/g)=0.01/0.05/0.01 | vendor_list: E=2.33 ε(r/t/g)=0.01/0.02/0.02 | audit_log_policy: E=3.33 ε(r/t/g)=0.02/0.05/0.03 | training_schedule: E=2.33 ε(r/t/g)=0.01/0.02/0.02 | press_template: E=2.33 ε(r/t/g)=0.01/0.02/0.02 | remediation_runbook: E=3.00 ε(r/t/g)=0.02/0.09/0.02 | incident_452: E=2.00 ε(r/t/g)=0.02/0.06/0.01 | security_contact: E=3.67 ε(r/t/g)=0.02/0.07/0.03 | ir_runbook: E=2.33 ε(r/t/g)=0.01/0.02/0.02 | datacenter_map: E=3.67 ε(r/t/g)=0.02/0.07/0.03
+
+========================================================================
+Round 5/6   ε_t^ret=0.050  ε_t^trans=0.033  ε_t^gen=0.083
+========================================================================
+[User] What were the detailed mitigation steps?
+[M1 Rewrite] What were the detailed mitigation steps?
+[M1 Score+Φ] data_classification:Score=+0.07(Rel=0.00,Φ=0.55)  vpn_guide:Score=+0.22(Rel=0.00,Φ=0.30)  datacenter_map:Score=+0.12(Rel=0.00,Φ=0.40)  hr_policy:Score=+0.22(Rel=0.00,Φ=0.30)  incident_453:Score=-0.11(Rel=0.00,Φ=0.84)  training_schedule:Score=+0.22(Rel=0.00,Φ=0.30)  incident_452:Score=-0.11(Rel=0.00,Φ=0.84)  vendor_list:Score=+0.18(Rel=0.00,Φ=0.30)  audit_log_policy:Score=+0.22(Rel=0.00,Φ=0.30)  meeting_room_index:Score=+0.20(Rel=0.00,Φ=0.30)
+[M1 GumbelTopK] selected=['data_classification', 'vpn_guide', 'datacenter_map', 'hr_policy', 'incident_453', 'training_schedule', 'incident_452', 'vendor_list', 'audit_log_policy', 'meeting_room_index']
+[M1 Δε^ret] data_classification:0.005  vpn_guide:0.005  datacenter_map:0.005  hr_policy:0.005  incident_453:0.004  training_schedule:0.005  incident_452:0.004  vendor_list:0.005  audit_log_policy:0.005  meeting_room_index:0.005
+[M2 σ_trans] 1453441.579
+[M2 [data_classification:redact+abstract  Δε^trans=0.027]] Data is classified into Public, Internal, Confidential, and Restricted. Restricted data such as [ABSTRACTED], [ABSTRACTED], and [REDACTED] must remain within th…
+[M2 [vpn_guide:abstract+gauss  Δε^trans=0.024]] Employees connecting from outside the corporate network must use the company VPN with multi-factor authentication. The VPN client is provisioned automatically o…
+[M2 [datacenter_map:abstract+gauss  Δε^trans=0.025]] The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.
+[M2 [hr_policy:abstract+gauss  Δε^trans=0.024]] HR policy requires that any payroll-related incident must be reported within ~-626266 hours. All reports should follow the standard incident-response template a…
+[M2 [incident_453:redact+abstract  Δε^trans=0.031]] [NAME] from the [LOCATION] filed a separate [ABSTRACTED] on Wednesday referencing [REDACTED]. Follow-up training was scheduled for [REDACTED] in [REDACTED].
+[M2 [training_schedule:abstract+gauss  Δε^trans=0.024]] Quarterly security training is mandatory for all employees and is delivered through the internal LMS. New joiners must complete it within ~-1291461 days of onbo…
+[M2 [incident_452:redact+abstract  Δε^trans=0.031]] [NAME] from the [LOCATION] reported a [ABSTRACTED] on Monday involving [REDACTED]. The response team recommended [REDACTED], [REDACTED], and a follow-up meeting…
+[M2 [vendor_list:abstract+gauss  Δε^trans=0.024]] Approved cloud vendors include AWS, Azure and GCP. Engagements with new vendors require a procurement review and a security questionnaire.
+[M2 [audit_log_policy:abstract+gauss  Δε^trans=0.024]] All access to restricted data is logged centrally for at least ~-2616487 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated…
+[M2 [meeting_room_index:abstract+gauss  Δε^trans=0.024]] Meeting rooms are organised by tower (A, B, T, F). Booking is done through the calendar app and rooms have a maximum capacity printed on the door.
+[M2 Sufficiency] r_suf=0.54  action=generate
+[M3 mode] reference-answer decode
+[M3 σ_gen(τ)] min=775.17 max=775.17 n_tok=6
+[M3 Δε^gen] data_classification:0.002  vpn_guide:0.002  datacenter_map:0.002  hr_policy:0.002  incident_453:0.002  training_schedule:0.002  incident_452:0.002  vendor_list:0.002  audit_log_policy:0.002  meeting_room_index:0.002
+[M3 Answer] Detailed mitigation records cannot be disclosed.
+[M4 Ledger] (see Final Ledger at the end)
+[M4 Ledger] data_classification: E=3.00 ε(r/t/g)=0.02/0.08/0.01 | vpn_guide: E=2.33 ε(r/t/g)=0.02/0.02/0.02 | datacenter_map: E=4.67 ε(r/t/g)=0.02/0.10/0.03 | hr_policy: E=2.33 ε(r/t/g)=0.03/0.02/0.02 | incident_453: E=4.00 ε(r/t/g)=0.01/0.12/0.03 | training_schedule: E=3.33 ε(r/t/g)=0.02/0.05/0.02 | incident_452: E=3.00 ε(r/t/g)=0.02/0.09/0.01 | vendor_list: E=3.33 ε(r/t/g)=0.02/0.05/0.02 | audit_log_policy: E=4.33 ε(r/t/g)=0.02/0.07/0.03 | meeting_room_index: E=2.33 ε(r/t/g)=0.01/0.02/0.02
+
+========================================================================
+Round 6/6   ε_t^ret=0.050  ε_t^trans=0.033  ε_t^gen=0.083
+========================================================================
+[User] When is the follow-up meeting?
+[M1 Rewrite] When is the follow-up meeting?
+[M1 Score+Φ] training_schedule:Score=+0.14(Rel=0.00,Φ=0.30)  datacenter_map:Score=+0.03(Rel=0.00,Φ=0.40)  audit_log_policy:Score=+0.17(Rel=0.00,Φ=0.30)  incident_452:Score=+0.89(Rel=1.00,Φ=0.85)  remediation_runbook:Score=-0.16(Rel=0.00,Φ=0.85)  incident_453:Score=+0.67(Rel=0.83,Φ=0.85)  security_contact:Score=+0.09(Rel=0.00,Φ=0.38)  hr_policy:Score=+0.56(Rel=0.37,Φ=0.30)  meeting_room_index:Score=+0.65(Rel=0.54,Φ=0.30)  data_classification:Score=+0.03(Rel=0.00,Φ=0.56)
+[M1 GumbelTopK] selected=['training_schedule', 'datacenter_map', 'audit_log_policy', 'incident_452', 'remediation_runbook', 'incident_453', 'security_contact', 'hr_policy', 'meeting_room_index', 'data_classification']
+[M1 Δε^ret] training_schedule:0.004  datacenter_map:0.004  audit_log_policy:0.004  incident_452:0.008  remediation_runbook:0.003  incident_453:0.007  security_contact:0.004  hr_policy:0.006  meeting_room_index:0.007  data_classification:0.004
+[M2 σ_trans] 1453441.579
+[M2 [training_schedule:abstract+gauss  Δε^trans=0.024]] Quarterly security training is mandatory for all employees and is delivered through the internal LMS. New joiners must complete it within ~-847464 days of onboa…
+[M2 [datacenter_map:abstract+gauss  Δε^trans=0.025]] The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.
+[M2 [audit_log_policy:abstract+gauss  Δε^trans=0.024]] All access to restricted data is logged centrally for at least ~-136746 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated …
+[M2 [incident_452:redact+abstract  Δε^trans=0.031]] [NAME] from the [LOCATION] reported a [ABSTRACTED] on Monday involving [REDACTED]. The response team recommended [REDACTED], [REDACTED], and a follow-up meeting…
+[M2 [remediation_runbook:redact+abstract  Δε^trans=0.031]] Standard remediation for a payroll incident is: [REDACTED], [REDACTED], snapshot the relevant systems, and open a postmortem ticket within 48 hours.
+[M2 [incident_453:redact+abstract  Δε^trans=0.031]] [NAME] from the [LOCATION] filed a separate [ABSTRACTED] on Wednesday referencing [REDACTED]. Follow-up training was scheduled for [REDACTED] in [REDACTED].
+[M2 [security_contact:abstract+gauss  Δε^trans=0.025]] All security-related questions should be directed to the on-call channel #sec-oncall. The on-call rota is rotated weekly and published in the internal directory…
+[M2 [hr_policy:abstract+gauss  Δε^trans=0.024]] HR policy requires that any payroll-related incident must be reported within ~764086 hours. All reports should follow the standard incident-response template an…
+[M2 [meeting_room_index:abstract+gauss  Δε^trans=0.024]] Meeting rooms are organised by tower (A, B, T, F). Booking is done through the calendar app and rooms have a maximum capacity printed on the door.
+[M2 [data_classification:redact+abstract  Δε^trans=0.027]] Data is classified into Public, Internal, Confidential, and Restricted. Restricted data such as [ABSTRACTED], [ABSTRACTED], and [REDACTED] must remain within th…
+[M2 Sufficiency] r_suf=0.64  action=generate
+[M3 mode] reference-answer decode
+[M3 σ_gen(τ)] min=0.00 max=0.00 n_tok=0
+[M3 Δε^gen] (none)
+[M3 Answer] Insufficient privacy budget. Follow-up scheduling details are protected.
+[M4 Ledger] (see Final Ledger at the end)
+[M4 Ledger] training_schedule: E=4.00 ε(r/t/g)=0.02/0.07/0.02 | datacenter_map: E=5.33 ε(r/t/g)=0.02/0.12/0.03 | audit_log_policy: E=5.00 ε(r/t/g)=0.03/0.10/0.03 | incident_452: E=3.67 ε(r/t/g)=0.03/0.12/0.01 | remediation_runbook: E=3.67 ε(r/t/g)=0.02/0.12/0.02 | incident_453: E=4.67 ε(r/t/g)=0.02/0.15/0.03 | security_contact: E=4.33 ε(r/t/g)=0.02/0.10/0.03 | hr_policy: E=3.00 ε(r/t/g)=0.03/0.05/0.02 | meeting_room_index: E=3.00 ε(r/t/g)=0.02/0.05/0.02 | data_classification: E=3.67 ε(r/t/g)=0.02/0.11/0.01
+
+========================================================================
+Final Ledger (per-document privacy accounting)
+========================================================================
+  incident_452
+                     n_ret: 4
+                     n_ctx: 4
+                   n_align: 3
+       exposure_recomputed: 3.667
+              eps_ret_used: 0.028
+            eps_trans_used: 0.122
+              eps_gen_used: 0.014
+            eps_used_total: 0.164
+      eps_remaining_global: 0.836
+  incident_453
+                     n_ret: 5
+                     n_ctx: 5
+                   n_align: 4
+       exposure_recomputed: 4.667
+              eps_ret_used: 0.020
+            eps_trans_used: 0.151
+              eps_gen_used: 0.028
+            eps_used_total: 0.199
+      eps_remaining_global: 0.801
+  hr_policy
+                     n_ret: 4
+                     n_ctx: 2
+                   n_align: 3
+       exposure_recomputed: 3.000
+              eps_ret_used: 0.035
+            eps_trans_used: 0.048
+              eps_gen_used: 0.019
+            eps_used_total: 0.102
+      eps_remaining_global: 0.898
+  ir_runbook
+                     n_ret: 3
+                     n_ctx: 1
+                   n_align: 3
+       exposure_recomputed: 2.333
+              eps_ret_used: 0.014
+            eps_trans_used: 0.024
+              eps_gen_used: 0.020
+            eps_used_total: 0.058
+      eps_remaining_global: 0.942
+  security_contact
+                     n_ret: 5
+                     n_ctx: 4
+                   n_align: 4
+       exposure_recomputed: 4.333
+              eps_ret_used: 0.020
+            eps_trans_used: 0.098
+              eps_gen_used: 0.028
+            eps_used_total: 0.147
+      eps_remaining_global: 0.853
+  training_schedule
+                     n_ret: 5
+                     n_ctx: 3
+                   n_align: 4
+       exposure_recomputed: 4.000
+              eps_ret_used: 0.022
+            eps_trans_used: 0.072
+              eps_gen_used: 0.022
+            eps_used_total: 0.117
+      eps_remaining_global: 0.883
+  vpn_guide
+                     n_ret: 3
+                     n_ctx: 1
+                   n_align: 3
+       exposure_recomputed: 2.333
+              eps_ret_used: 0.015
+            eps_trans_used: 0.024
+              eps_gen_used: 0.019
+            eps_used_total: 0.058
+      eps_remaining_global: 0.942
+  datacenter_map
+                     n_ret: 6
+                     n_ctx: 5
+                   n_align: 5
+       exposure_recomputed: 5.333
+              eps_ret_used: 0.025
+            eps_trans_used: 0.125
+              eps_gen_used: 0.031
+            eps_used_total: 0.180
+      eps_remaining_global: 0.820
+  vendor_list
+                     n_ret: 4
+                     n_ctx: 2
+                   n_align: 4
+       exposure_recomputed: 3.333
+              eps_ret_used: 0.019
+            eps_trans_used: 0.048
+              eps_gen_used: 0.022
+            eps_used_total: 0.090
+      eps_remaining_global: 0.910
+  data_classification
+                     n_ret: 4
+                     n_ctx: 4
+                   n_align: 3
+       exposure_recomputed: 3.667
+              eps_ret_used: 0.022
+            eps_trans_used: 0.106
+              eps_gen_used: 0.014
+            eps_used_total: 0.143
+      eps_remaining_global: 0.857
+  meeting_room_index
+                     n_ret: 4
+                     n_ctx: 2
+                   n_align: 3
+       exposure_recomputed: 3.000
+              eps_ret_used: 0.021
+            eps_trans_used: 0.048
+              eps_gen_used: 0.019
+            eps_used_total: 0.088
+      eps_remaining_global: 0.912
+  press_template
+                     n_ret: 3
+                     n_ctx: 1
+                   n_align: 3
+       exposure_recomputed: 2.333
+              eps_ret_used: 0.014
+            eps_trans_used: 0.024
+              eps_gen_used: 0.020
+            eps_used_total: 0.058
+      eps_remaining_global: 0.942
+  audit_log_policy
+                     n_ret: 6
+                     n_ctx: 4
+                   n_align: 5
+       exposure_recomputed: 5.000
+              eps_ret_used: 0.027
+            eps_trans_used: 0.096
+              eps_gen_used: 0.031
+            eps_used_total: 0.153
+      eps_remaining_global: 0.847
+  remediation_runbook
+                     n_ret: 4
+                     n_ctx: 4
+                   n_align: 3
+       exposure_recomputed: 3.667
+              eps_ret_used: 0.018
+            eps_trans_used: 0.121
+              eps_gen_used: 0.020
+            eps_used_total: 0.159
+      eps_remaining_global: 0.841
+
+========================================================================
+Conversation Trace
+========================================================================
+  Round 1
+    Q: Who reported the incident?
+    A: Alice reported the incident.
+  Round 2
+    Q: Which branch was involved?
+    A: It was reported by the Singapore branch.
+  Round 3
+    Q: What type of incident was reported?
+    A: It involved a payroll-related data issue.
+  Round 4
+    Q: Which records were affected?
+    A: Specific affected identifiers are protected.
+  Round 5
+    Q: What were the detailed mitigation steps?
+    A: Detailed mitigation records cannot be disclosed.
+  Round 6
+    Q: When is the follow-up meeting?
+    A: Insufficient privacy budget. Follow-up scheduling details are protected.

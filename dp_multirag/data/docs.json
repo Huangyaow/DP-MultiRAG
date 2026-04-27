@@ -1,0 +1,100 @@
+[
+  {
+    "id": "incident_452",
+    "text": "Alice from the Singapore branch reported a payroll data incident on Monday involving employee IDs 4821-4835. The response team recommended immediate account suspension, forensic review of the affected accounts, and a follow-up meeting next Tuesday at 10:00 AM in conference room B-301 to coordinate remediation.",
+    "sensitive_spans": [
+      {"text": "Alice", "tier": "low"},
+      {"text": "Singapore branch", "tier": "low"},
+      {"text": "payroll data incident", "tier": "low"},
+      {"text": "employee IDs 4821-4835", "tier": "high"},
+      {"text": "next Tuesday at 10:00 AM", "tier": "high"},
+      {"text": "conference room B-301", "tier": "high"},
+      {"text": "immediate account suspension", "tier": "high"},
+      {"text": "forensic review of the affected accounts", "tier": "high"}
+    ]
+  },
+  {
+    "id": "incident_453",
+    "text": "Bob from the Tokyo office filed a separate phishing report on Wednesday referencing employee IDs 5012-5018. Follow-up training was scheduled for Friday at 2:00 PM in room T-117.",
+    "sensitive_spans": [
+      {"text": "Bob", "tier": "low"},
+      {"text": "Tokyo office", "tier": "low"},
+      {"text": "phishing report", "tier": "low"},
+      {"text": "employee IDs 5012-5018", "tier": "high"},
+      {"text": "Friday at 2:00 PM", "tier": "high"},
+      {"text": "room T-117", "tier": "high"}
+    ]
+  },
+  {
+    "id": "hr_policy",
+    "text": "HR policy requires that any payroll-related incident must be reported within 24 hours. All reports should follow the standard incident-response template and be filed with the security team.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "ir_runbook",
+    "text": "The standard incident-response template covers four phases: detection, containment, eradication, and recovery. Each phase has a checklist and a designated owner inside the security team.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "security_contact",
+    "text": "All security-related questions should be directed to the on-call channel #sec-oncall. The on-call rota is rotated weekly and published in the internal directory.",
+    "sensitive_spans": [
+      {"text": "#sec-oncall", "tier": "low"}
+    ]
+  },
+  {
+    "id": "training_schedule",
+    "text": "Quarterly security training is mandatory for all employees and is delivered through the internal LMS. New joiners must complete it within 30 days of onboarding.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "vpn_guide",
+    "text": "Employees connecting from outside the corporate network must use the company VPN with multi-factor authentication. The VPN client is provisioned automatically on managed laptops.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "datacenter_map",
+    "text": "The primary data center is in Frankfurt and the secondary in Dublin. Physical access requires a security badge and is logged at every door.",
+    "sensitive_spans": [
+      {"text": "Frankfurt", "tier": "low"},
+      {"text": "Dublin", "tier": "low"}
+    ]
+  },
+  {
+    "id": "vendor_list",
+    "text": "Approved cloud vendors include AWS, Azure and GCP. Engagements with new vendors require a procurement review and a security questionnaire.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "data_classification",
+    "text": "Data is classified into Public, Internal, Confidential, and Restricted. Restricted data such as payroll, medical, and identity records must remain within the secure enclave at all times.",
+    "sensitive_spans": [
+      {"text": "payroll", "tier": "low"},
+      {"text": "medical", "tier": "low"},
+      {"text": "identity records", "tier": "high"}
+    ]
+  },
+  {
+    "id": "meeting_room_index",
+    "text": "Meeting rooms are organised by tower (A, B, T, F). Booking is done through the calendar app and rooms have a maximum capacity printed on the door.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "press_template",
+    "text": "Public communication about any security incident must use the official press template and be approved by both the legal team and the head of security before release.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "audit_log_policy",
+    "text": "All access to restricted data is logged centrally for at least 18 months. Access logs are reviewed monthly by the audit team and any anomaly is escalated to the security lead.",
+    "sensitive_spans": []
+  },
+  {
+    "id": "remediation_runbook",
+    "text": "Standard remediation for a payroll incident is: revoke active sessions, rotate affected credentials, snapshot the relevant systems, and open a postmortem ticket within 48 hours.",
+    "sensitive_spans": [
+      {"text": "revoke active sessions", "tier": "high"},
+      {"text": "rotate affected credentials", "tier": "high"}
+    ]
+  }
+]
