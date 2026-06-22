@@ -26,6 +26,7 @@ class TurnResult:
     selected: List[dict]
     selected_ids: List[str]
     scores: List[float]
+    noisy_scores: List[float]
     rel: List[float]
     phi: List[float]
     delta_eps_ret: List[float]
@@ -37,6 +38,7 @@ class TurnResult:
     sigma_gen_per_token: List[float]
     n_tokens: int
     delta_eps_gen_per_doc: Dict[str, float]
+    alignment_per_doc: Dict[str, float] = field(default_factory=dict)
     re_retrieved: bool = False
     extra: Dict[str, Any] = field(default_factory=dict)
 
@@ -87,6 +89,7 @@ def run_turn(
     cfg_ret = {
         "eps_t_ret": cfg["eps_t_ret"],
         "top_k": cfg["top_k"],
+        "delta_ret": cfg.get("delta_ret", 1.0),
         "gamma": cfg["gamma"],
         "beta": cfg["beta"],
         "w": cfg["w"],
@@ -96,7 +99,13 @@ def run_turn(
         "phi_low": cfg["phi_low"],
         "phi_high": cfg["phi_high"],
     }
+    if "span_classifier" in cfg:
+        cfg_evi["span_classifier"] = cfg["span_classifier"]
+
     cfg_gen = {"eps_t_gen": cfg["eps_t_gen"]}
+    for key in ("rho_t_gen", "risk_detector", "risk_patterns"):
+        if key in cfg:
+            cfg_gen[key] = cfg[key]
 
     re_retrieved = False
     ret = ev_out = None
@@ -130,6 +139,7 @@ def run_turn(
             selected=ret["selected"],
             selected_ids=selected_ids,
             scores=ret["scores"],
+            noisy_scores=ret["noisy_scores"],
             rel=ret["rel"],
             phi=ret["phi"],
             delta_eps_ret=ret["delta_eps_ret"],
@@ -141,6 +151,7 @@ def run_turn(
             sigma_gen_per_token=[],
             n_tokens=0,
             delta_eps_gen_per_doc={},
+            alignment_per_doc={},
             re_retrieved=re_retrieved,
         )
 
@@ -163,6 +174,7 @@ def run_turn(
         selected=ret["selected"],
         selected_ids=selected_ids,
         scores=ret["scores"],
+        noisy_scores=ret["noisy_scores"],
         rel=ret["rel"],
         phi=ret["phi"],
         delta_eps_ret=ret["delta_eps_ret"],
@@ -174,6 +186,7 @@ def run_turn(
         sigma_gen_per_token=gen["sigma_per_token"],
         n_tokens=gen["n_tokens"],
         delta_eps_gen_per_doc=gen["delta_eps_gen_per_doc"],
+        alignment_per_doc=gen.get("alignment_per_doc", {}),
         re_retrieved=re_retrieved,
     )
 

@@ -3,8 +3,8 @@
 DP-noised logit decoding:
 
     ℓ̃_{t,τ}    = ℓ_{t,τ} + z_{t,τ} ,   z_{t,τ} ~ N(0, σ_{t,τ}^2)
-    σ_gen      = Δ_gen · √(2 ln(1.25 / δ)) / ε_gen
-    ε_{t,τ}^{gen} = ε_t^{gen} · η_{t,τ}
+    σ_{t,τ}    = Δ_gen / √(2ρ_{t,τ}^{gen})       # zCDP form
+    ε_{t,τ}^{gen} = ε_t^{gen} · η_{t,τ}          # implementation fallback
     p( y_{t,τ} ) = softmax( ℓ̃_{t,τ} ) .
 
 The OpenAI-compatible ``top_logprobs`` channel returns the
@@ -25,7 +25,7 @@ from __future__ import annotations
 import math
 import random
 import re
-from typing import List
+from typing import Callable, Dict, List, Optional, Sequence
 
 from . import ledger as L
 
@@ -41,27 +41,61 @@ def gaussian_sigma(eps: float, delta: float, sensitivity: float = DELTA_GEN
     return sensitivity * math.sqrt(2.0 * math.log(1.25 / max(delta, 1e-12))) / eps
 
 
-_HIGH_RISK_PATTERNS = (
-    r"\b\d{3,}\b",
-    r"@",
-    r"\b(?:[A-Z][a-z]+)\s+(?:[A-Z][a-z]+)\b",
-    r"\b\d{1,2}:\d{2}\b",
-)
+def zcdp_sigma(rho: float, sensitivity: float = DELTA_GEN) -> float:
+    """Paper Eq. (15): ``σ = Δ_gen / sqrt(2ρ)`` for Gaussian zCDP."""
+    if rho <= 0:
+        return float("inf")
+    return sensitivity / math.sqrt(2.0 * rho)
 
 
-def token_eta(token: str, transformed_evidence: list) -> float:
+def zcdp_to_eps_delta(rho: float, delta: float) -> float:
+    """Paper Eq. (18): convert ``ρ``-zCDP to ``(ε, δ)``-DP."""
+    if rho <= 0:
+        return 0.0
+    return rho + 2.0 * math.sqrt(rho * math.log(1.0 / max(delta, 1e-12)))
+
+
+def eps_delta_to_zcdp(eps: float, delta: float) -> float:
+    """Conservative inverse of Eq. (18), useful for ε-configured callers."""
+    if eps <= 0:
+        return 0.0
+    log_term = math.sqrt(math.log(1.0 / max(delta, 1e-12)))
+    root_rho = max(0.0, math.sqrt(log_term * log_term + eps) - log_term)
+    return root_rho * root_rho
+
+
+ETA_MAX = 1.2
+
+
+def _detector_score(detector_result) -> Optional[float]:
+    if detector_result is None:
+        return None
+    if isinstance(detector_result, bool):
+        return 0.3 if detector_result else None
+    if isinstance(detector_result, (int, float)):
+        return max(0.05, min(ETA_MAX, float(detector_result)))
+    return 0.3 if detector_result else None
+
+
+def token_eta(token: str, transformed_evidence: list,
+              risk_detector: Optional[Callable[[str, list], object]] = None,
+              risk_patterns: Optional[Sequence[str]] = None) -> float:
     """``η_{t,τ}``: per-token allocation factor in ``[η_min, η_max]``.
 
-    A token that matches a high-risk pattern (long digit run, email,
-    full-name pair, time-stamp) or that would reproduce a redacted span
-    is forced to a small ``η`` so the analytical mapping ``σ ∝ 1/ε``
-    increases the noise on that token. Other tokens get a slight bonus.
+    Callers may provide a domain-specific ``risk_detector`` or
+    ``risk_patterns``. Without those hooks, this function only treats attempts
+    to reproduce sanitized markers as high risk.
     """
     s = (token or "").strip()
     if not s:
         return 1.0
 
-    for pat in _HIGH_RISK_PATTERNS:
+    if risk_detector is not None:
+        score = _detector_score(risk_detector(s, transformed_evidence))
+        if score is not None:
+            return score
+
+    for pat in risk_patterns or ():
         if re.search(pat, s):
             return 0.3
 
@@ -69,7 +103,100 @@ def token_eta(token: str, transformed_evidence: list) -> float:
         if e.get("n_redacted") and any(p in s for p in ("REDACT", "REDACTED")):
             return 0.2
 
-    return 1.2
+    return ETA_MAX
+
+
+def normalise_token_etas(
+    tokens: List[str],
+    transformed_evidence: list,
+    risk_detector: Optional[Callable[[str, list], object]] = None,
+    risk_patterns: Optional[Sequence[str]] = None,
+) -> List[float]:
+    """Normalize per-token ``η`` so ``Σ_τ η_{t,τ} ≤ 1`` as in Eq. (16)."""
+    raw = [
+        max(0.0, token_eta(tok, transformed_evidence,
+                           risk_detector=risk_detector,
+                           risk_patterns=risk_patterns))
+        for tok in tokens
+    ]
+    total = sum(raw)
+    if total <= 0:
+        return [0.0 for _ in raw]
+    return [v / total for v in raw]
+
+
+def online_token_eta(token: str, transformed_evidence: list,
+                     max_tokens: int,
+                     risk_detector: Optional[Callable[[str, list], object]] = None,
+                     risk_patterns: Optional[Sequence[str]] = None) -> float:
+    """Streaming-safe ``η_{t,τ}`` with ``Σ_τ η_{t,τ} ≤ 1``."""
+    eta = token_eta(token, transformed_evidence,
+                    risk_detector=risk_detector,
+                    risk_patterns=risk_patterns)
+    return eta / max(1.0, ETA_MAX * max_tokens)
+
+
+def _answer_terms(answer: str) -> set:
+    return {
+        t for t in re.findall(r"[a-zA-Z0-9]+", answer.lower())
+        if len(t) > 2
+    }
+
+
+def document_token_alignment(answer: str, transformed: list,
+                             temperature: float = 1.0) -> Dict[str, float]:
+    """Approximate Eq. (21)-(23): document contribution weights ``a_i``.
+
+    The paper defines alignment with a public encoder over sanitized evidence
+    and output tokens. This module keeps the function local and dependency-free
+    by using lexical overlap against the sanitized evidence text. The returned
+    weights sum to ``1`` over selected evidence documents.
+    """
+    if not transformed:
+        return {}
+
+    answer_terms = _answer_terms(answer)
+    raw_scores = []
+    for e in transformed:
+        ev_terms = _answer_terms(e.get("text", ""))
+        overlap = len(answer_terms & ev_terms) / max(1, len(answer_terms))
+        mask_signal = 0.25 * bool(e.get("n_redacted"))
+        raw_scores.append(overlap + mask_signal + 1e-6)
+
+    m = max(raw_scores)
+    exps = [
+        math.exp((s - m) / max(temperature, 1e-6))
+        for s in raw_scores
+    ]
+    total = sum(exps)
+    return {
+        e["id"]: exps[i] / total
+        for i, e in enumerate(transformed)
+    }
+
+
+def charge_generation_by_alignment(answer: str, transformed: list,
+                                   ledger: dict, eps_used_total: float,
+                                   exposure_mass: float = 1.0) -> Dict[str, float]:
+    """Charge ``Δε_i^{gen,t}`` according to output-evidence alignment.
+
+    This is the implementation hook for Eq. (23)-(25): generated text is
+    aligned with sanitized evidence, then both privacy cost and alignment
+    exposure are distributed to document-level ledger rows.
+    """
+    weights = document_token_alignment(answer, transformed)
+    if not weights or eps_used_total <= 0:
+        return {}
+
+    deltas = {}
+    exposure_mass = max(0.0, min(1.0, exposure_mass))
+    for e in transformed:
+        weight = weights.get(e["id"], 0.0)
+        delta = eps_used_total * weight
+        charged = L.charge_generation(ledger, e["id"], delta,
+                                      align_weight=exposure_mass * weight)
+        deltas[e["id"]] = charged
+    return deltas
 
 
 ANSWER_SYSTEM = (
@@ -135,19 +262,23 @@ def privacy_decode(llm, q_tilde: str, transformed: list, ledger: dict,
     """
     eps_gen_t = cfg["eps_t_gen"]
     delta = ledger["config"]["delta_global"]
+    rho_gen_t = cfg.get("rho_t_gen", eps_delta_to_zcdp(eps_gen_t, delta))
+    risk_detector = cfg.get("risk_detector")
+    risk_patterns = cfg.get("risk_patterns")
 
     if not transformed:
         return {"answer": "I cannot disclose this information.",
                 "n_tokens": 0, "sigma_per_token": [],
-                "delta_eps_gen_per_doc": {}}
+                "delta_eps_gen_per_doc": {},
+                "alignment_per_doc": {}}
 
     ev_str = "\n".join(f"- ({e['id']}) {e['text']}" for e in transformed)
     user_msg = ANSWER_USER.format(evidence=ev_str, query=q_tilde)
 
     answer_tokens: List[str] = []
     sigma_per_token: List[float] = []
-    eps_remaining = eps_gen_t
-    eps_used_total = 0.0
+    rho_remaining = rho_gen_t
+    rho_used_total = 0.0
 
     for _ in range(max_tokens):
         cand = llm.next_token_logprobs(
@@ -160,12 +291,15 @@ def privacy_decode(llm, q_tilde: str, transformed: list, ledger: dict,
             break
 
         leading_token = cand[0]["token"]
-        eta = token_eta(leading_token, transformed)
-        eps_tau = min(eps_remaining,
-                      eps_gen_t / max(1, max_tokens) * eta)
-        if eps_tau <= 1e-6:
+        eta = online_token_eta(
+            leading_token, transformed, max_tokens,
+            risk_detector=risk_detector,
+            risk_patterns=risk_patterns,
+        )
+        rho_tau = min(rho_remaining, rho_gen_t * eta)
+        if rho_tau <= 1e-12:
             break
-        sigma = gaussian_sigma(eps_tau, delta)
+        sigma = zcdp_sigma(rho_tau)
         sigma_per_token.append(sigma)
 
         noisy_logits = [
@@ -177,8 +311,8 @@ def privacy_decode(llm, q_tilde: str, transformed: list, ledger: dict,
         chosen = cand[idx]["token"]
 
         answer_tokens.append(chosen)
-        eps_used_total += eps_tau
-        eps_remaining -= eps_tau
+        rho_used_total += rho_tau
+        rho_remaining -= rho_tau
 
         if chosen in ("", "<|endoftext|>", "</s>"):
             break
@@ -189,18 +323,18 @@ def privacy_decode(llm, q_tilde: str, transformed: list, ledger: dict,
     answer = "".join(answer_tokens).strip().split("\n")[0] or \
              "I cannot disclose this information."
 
-    deltas = {}
-    if transformed:
-        share = eps_used_total / len(transformed)
-        for e in transformed:
-            L.charge_generation(ledger, e["id"], share)
-            deltas[e["id"]] = share
+    eps_used_total = min(eps_gen_t, zcdp_to_eps_delta(rho_used_total, delta))
+    deltas = charge_generation_by_alignment(
+        answer, transformed, ledger, eps_used_total,
+        exposure_mass=1.0 if eps_used_total > 0 else 0.0,
+    )
 
     return {
         "answer": answer,
         "n_tokens": len(answer_tokens),
         "sigma_per_token": sigma_per_token,
         "delta_eps_gen_per_doc": deltas,
+        "alignment_per_doc": document_token_alignment(answer, transformed),
     }
 
 
@@ -238,16 +372,15 @@ def reference_decode(answer: str, disclosure: float, transformed: list,
             "n_tokens": 0,
             "sigma_per_token": [],
             "delta_eps_gen_per_doc": {},
+            "alignment_per_doc": {},
         }
 
     eps_used_total = eps_gen_t * disclosure
     sigma = gaussian_sigma(eps_used_total, delta) if eps_used_total > 0 else 0.0
-    share = eps_used_total / len(transformed)
-
-    deltas = {}
-    for e in transformed:
-        L.charge_generation(ledger, e["id"], share)
-        deltas[e["id"]] = share
+    deltas = charge_generation_by_alignment(
+        answer, transformed, ledger, eps_used_total,
+        exposure_mass=disclosure,
+    )
 
     n_tok_proxy = max(1, len(answer.split()))
     return {
@@ -255,4 +388,5 @@ def reference_decode(answer: str, disclosure: float, transformed: list,
         "n_tokens": n_tok_proxy,
         "sigma_per_token": [sigma] * n_tok_proxy,
         "delta_eps_gen_per_doc": deltas,
+        "alignment_per_doc": document_token_alignment(answer, transformed),
     }

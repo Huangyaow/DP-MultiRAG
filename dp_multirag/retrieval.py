@@ -8,7 +8,7 @@ Pipeline for a single turn ``t``:
     (3) Final score
             Score(d_i) = Rel(q̃_t, d_i) + γ · U(d_i; C_<t) − β · Φ(d_i)
     (4) Differentially-private Top-K via the exponential mechanism
-            s̃_i = Score(d_i) + g_i ,   g_i ~ Gumbel(0, 1/ε_t^ret)
+            s̃_i = Score(d_i) + g_i ,   g_i ~ Gumbel(0, 2Δ_ret/ε_t^ret)
             C_t = TopK_i(s̃_i)
     (5) Per-document retrieval-budget charge
             Δε_i^{ret,t} = ε_t^ret · ρ_i^(t)
@@ -26,6 +26,11 @@ from collections import Counter
 from typing import List, Tuple
 
 from . import ledger as L
+
+try:
+    from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+except Exception:  # pragma: no cover - sklearn is optional.
+    ENGLISH_STOP_WORDS = None
 
 
 REWRITE_PROMPT = """You rewrite the user's follow-up question into a fully \
@@ -58,8 +63,11 @@ def rewrite_query(llm, raw_q: str, history: list) -> str:
     return out or raw_q
 
 
-_STOP = {"the", "a", "an", "is", "of", "to", "in", "on", "at",
-         "and", "or", "for", "with", "was", "were", "be", "by"}
+# Tokenization is only a local proxy for Rel/Align/U; it is not part of the
+# DP mechanism. Use sklearn's maintained English stop-word list when available;
+# otherwise leave stop-word filtering disabled instead of maintaining a local
+# hard-coded list.
+_STOP = frozenset(ENGLISH_STOP_WORDS) if ENGLISH_STOP_WORDS else frozenset()
 
 
 def _tok(text: str) -> List[str]:
@@ -136,8 +144,7 @@ def phi(doc: dict, ledger: dict, query: str, history: list,
     """``Φ(d_i) = w_1 · S(d_i) + w_2 · Exp_norm(d_i) + w_3 · Align``."""
     w1, w2, w3 = w
     s = intrinsic_sensitivity(doc)
-    eps_global = ledger["config"]["eps_global"]
-    exp_norm = min(1.0, L.exposure(ledger, doc["id"]) / max(1.0, eps_global))
+    exp_norm = L.normalized_exposure(ledger, doc["id"])
     al = alignment(query, doc, history)
     return w1 * s + w2 * exp_norm + w3 * al
 
@@ -150,8 +157,14 @@ def utility(doc: dict, history: list) -> float:
     """
     if not history:
         return 1.0
-    ans_chars = sum(len(a) for _, a in history)
-    return max(0.0, min(1.0, len(doc["text"]) / (1.0 + ans_chars)))
+    doc_toks = set(_tok(doc["text"]))
+    if not doc_toks:
+        return 0.0
+    surfaced = set()
+    for _, answer in history:
+        surfaced.update(_tok(answer))
+    overlap = len(doc_toks & surfaced) / max(1, len(doc_toks))
+    return max(0.0, min(1.0, 1.0 - overlap))
 
 
 def score_documents(query: str, docs: list, ledger: dict, history: list,
@@ -172,28 +185,39 @@ def score_documents(query: str, docs: list, ledger: dict, history: list,
     return scores, rel, phis
 
 
-def gumbel_topk(scores: List[float], k: int, eps_ret: float,
-                rng: random.Random) -> List[int]:
-    """Differentially-private Top-K via the Gumbel realisation of the
-    exponential mechanism.
-
-    Adds ``g_i ~ Gumbel(0, 1/ε_ret)`` to each score and returns the indices
-    of the ``k`` largest noised scores. This is the standard "Report Noisy
-    Top-K" mechanism with sensitivity 1.
-    """
+def gumbel_noisy_scores(scores: List[float], eps_ret: float,
+                        rng: random.Random,
+                        sensitivity: float = 1.0) -> List[float]:
+    """Return ``s̃_i = Score(d_i) + Gumbel(0, 2Δ_ret / ε_t^ret)``."""
     if eps_ret <= 0:
         scale = 1e6
     else:
-        scale = 1.0 / eps_ret
+        scale = 2.0 * sensitivity / eps_ret
 
     noised = []
-    for i, s in enumerate(scores):
+    for s in scores:
         u = rng.random()
         u = max(min(u, 1 - 1e-12), 1e-12)
         g = -scale * math.log(-math.log(u))
-        noised.append((s + g, i))
+        noised.append(s + g)
+    return noised
+
+
+def gumbel_topk(scores: List[float], k: int, eps_ret: float,
+                rng: random.Random,
+                sensitivity: float = 1.0) -> List[int]:
+    """Differentially-private Top-K via the exponential mechanism.
+
+    Adds ``g_i ~ Gumbel(0, 2Δ_ret/ε_ret)`` to each score and returns the
+    indices of the ``k`` largest noised scores.
+    """
+    noised = [
+        (s, i)
+        for i, s in enumerate(gumbel_noisy_scores(scores, eps_ret, rng,
+                                                  sensitivity=sensitivity))
+    ]
     noised.sort(reverse=True)
-    return [i for _, i in noised[:k]]
+    return [i for _, i in noised[:max(0, min(k, len(noised)))]]
 
 
 def _softmax(xs: List[float], temp: float = 1.0) -> List[float]:
@@ -206,19 +230,18 @@ def _softmax(xs: List[float], temp: float = 1.0) -> List[float]:
 
 
 def charge_retrieval_costs(ledger: dict, selected_docs: list,
-                           selected_scores: List[float],
+                           selected_noisy_scores: List[float],
                            eps_ret_t: float) -> List[float]:
     """Distribute ``ε_t^ret`` across the selected documents proportionally
     to their (post-noise) scores:
 
         ρ_i^(t) = softmax(s̃_i),  Δε_i^{ret,t} = ε_t^ret · ρ_i^(t)
     """
-    rho = _softmax(selected_scores, temp=1.0)
+    rho = _softmax(selected_noisy_scores, temp=1.0)
     deltas = []
     for d, p in zip(selected_docs, rho):
         delta = eps_ret_t * p
-        L.charge_retrieval(ledger, d["id"], delta)
-        deltas.append(delta)
+        deltas.append(L.charge_retrieval(ledger, d["id"], delta))
     return deltas
 
 
@@ -237,7 +260,8 @@ def retrieve(llm, raw_q: str, history: list, docs: list, ledger: dict,
         rng: ``random.Random`` instance used for the Gumbel mechanism.
 
     Returns:
-        ``{"q_tilde", "selected", "scores", "rel", "phi", "delta_eps_ret"}``.
+        ``{"q_tilde", "selected", "scores", "noisy_scores", "rel", "phi",
+        "delta_eps_ret"}``.
     """
     q_tilde = rewrite_query(llm, raw_q, history)
 
@@ -247,18 +271,22 @@ def retrieve(llm, raw_q: str, history: list, docs: list, ledger: dict,
     )
 
     eps_ret_t = cfg["eps_t_ret"]
-    top_idx = gumbel_topk(scores, k=cfg["top_k"],
-                          eps_ret=eps_ret_t, rng=rng)
+    sensitivity = cfg.get("delta_ret", 1.0)
+    noisy_scores = gumbel_noisy_scores(scores, eps_ret=eps_ret_t, rng=rng,
+                                       sensitivity=sensitivity)
+    ranked = sorted(((s, i) for i, s in enumerate(noisy_scores)), reverse=True)
+    top_idx = [i for _, i in ranked[:max(0, min(cfg["top_k"], len(ranked)))]]
     selected = [docs[i] for i in top_idx]
-    selected_scores = [scores[i] for i in top_idx]
+    selected_noisy_scores = [noisy_scores[i] for i in top_idx]
 
-    deltas = charge_retrieval_costs(ledger, selected, selected_scores,
+    deltas = charge_retrieval_costs(ledger, selected, selected_noisy_scores,
                                     eps_ret_t=eps_ret_t)
 
     return {
         "q_tilde": q_tilde,
         "selected": selected,
         "scores": [scores[i] for i in top_idx],
+        "noisy_scores": selected_noisy_scores,
         "rel": [rel[i] for i in top_idx],
         "phi": [phis[i] for i in top_idx],
         "delta_eps_ret": deltas,

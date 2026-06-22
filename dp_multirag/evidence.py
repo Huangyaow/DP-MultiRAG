@@ -24,7 +24,7 @@ from __future__ import annotations
 import math
 import random
 import re
-from typing import List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from . import ledger as L
 
@@ -43,21 +43,29 @@ def gaussian_sigma(eps: float, delta: float, sensitivity: float) -> float:
 _NUM_RE = re.compile(r"\b\d+(?:[\.\-]\d+)*\b")
 
 
-def _abstract(span_text: str) -> str:
-    """Replace a sensitive span with a coarse type tag."""
-    s = span_text.strip()
-    if _NUM_RE.search(s) and any(c.isdigit() for c in s):
-        return "[NUMERIC_RANGE]"
-    if "@" in s:
-        return "[EMAIL]"
-    if any(t in s.lower() for t in ("st.", "street", "avenue", "ave.", "road",
-                                    "branch", "office")):
-        return "[LOCATION]"
-    if any(t in s.lower() for t in ("am", "pm", "monday", "tuesday",
-                                    "wednesday", "thursday", "friday")):
-        return "[TIME]"
-    if s.split()[0][:1].isupper():
-        return "[NAME]"
+def _format_abstract_label(label: str) -> str:
+    label = re.sub(r"[^A-Za-z0-9_]+", "_", str(label).strip()).strip("_")
+    return f"[{label.upper()}]" if label else "[ABSTRACTED]"
+
+
+def _abstract(span: dict,
+              span_classifier: Optional[Callable[[dict], str]] = None) -> str:
+    """Replace a sensitive span with a coarse type tag.
+
+    The paper requires high-risk evidence to be abstracted before generation,
+    but it does not prescribe a fixed entity recognizer. This implementation
+    therefore reads an explicit span label when present, or delegates labeling
+    to an optional caller-provided classifier.
+    """
+    for key in ("abstract_label", "type", "category", "label", "entity_type"):
+        if span.get(key):
+            return _format_abstract_label(span[key])
+
+    if span_classifier is not None:
+        label = span_classifier(span)
+        if label:
+            return _format_abstract_label(label)
+
     return "[ABSTRACTED]"
 
 
@@ -95,6 +103,7 @@ def transform_evidence(cands: list, ledger: dict, cfg: dict,
     eps_trans_t = cfg["eps_t_trans"]
     delta = ledger["config"]["delta_global"]
     sigma = gaussian_sigma(eps_trans_t, delta, DELTA_TRANS)
+    span_classifier = cfg.get("span_classifier")
 
     transformed = []
     for d, ph in zip(cands, risk_per_doc):
@@ -109,13 +118,13 @@ def transform_evidence(cands: list, ledger: dict, cfg: dict,
                         text = text.replace(s["text"], "[REDACTED]")
                         n_redacted += 1
                     else:
-                        text = text.replace(s["text"], _abstract(s["text"]))
+                        text = text.replace(s["text"], _abstract(s, span_classifier))
                         n_abstracted += 1
             ops_used.append("redact+abstract")
         elif ph >= cfg["phi_low"]:
             for s in d.get("sensitive_spans", []):
                 if s["text"] in text and s["tier"] == "high":
-                    text = text.replace(s["text"], _abstract(s["text"]))
+                    text = text.replace(s["text"], _abstract(s, span_classifier))
                     n_abstracted += 1
             text, n_noised = _add_gaussian_to_numbers(text, sigma, rng)
             ops_used.append("abstract+gauss")
@@ -126,8 +135,10 @@ def transform_evidence(cands: list, ledger: dict, cfg: dict,
             0.0 if "identity" in ops_used
             else eps_trans_t * (0.6 + 0.4 * ph)
         )
-        if cost > 0:
-            L.charge_transform(ledger, d["id"], cost)
+        # Every selected evidence item enters the sanitized context C_tilde and
+        # therefore contributes to n_i^ctx in Eq. (5), even if its transform
+        # operator is identity and consumes zero transformation budget.
+        charged = L.charge_transform(ledger, d["id"], cost)
 
         transformed.append({
             "id": d["id"],
@@ -136,7 +147,7 @@ def transform_evidence(cands: list, ledger: dict, cfg: dict,
             "n_redacted": n_redacted,
             "n_abstracted": n_abstracted,
             "n_noised": n_noised,
-            "delta_eps_trans": cost,
+            "delta_eps_trans": charged,
             "phi": ph,
         })
 

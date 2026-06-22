@@ -5,7 +5,7 @@ Per-document state is updated after every turn:
 
     L_i^(t) = f( L_i^(t-1), e_i^(t), Δε_i^(t) )
 
-with cumulative exposure
+    with cumulative exposure
 
     Exp(d_i) = α_1 · n_i^ret + α_2 · n_i^ctx + α_3 · n_i^align
 
@@ -23,6 +23,12 @@ is enforced by the helper :func:`global_remaining`.
 from __future__ import annotations
 
 from typing import Dict, Iterable, List, Tuple
+
+
+def _exposure_from_counters(row: dict, alpha: Tuple[float, float, float]) -> float:
+    """Paper Eq. (5): exposure induced by retrieval/context/alignment counts."""
+    a1, a2, a3 = alpha
+    return a1 * row["n_ret"] + a2 * row["n_ctx"] + a3 * row["n_align"]
 
 
 def init_ledger(
@@ -57,7 +63,7 @@ def init_ledger(
         rows[d["id"]] = {
             "n_ret": 0,
             "n_ctx": 0,
-            "n_align": 0,
+            "n_align": 0.0,
             "exposure": 0.0,
             "eps_ret_used": 0.0,
             "eps_trans_used": 0.0,
@@ -78,11 +84,32 @@ def init_ledger(
     }
 
 
+def raw_exposure(ledger: dict, doc_id: str) -> float:
+    """Recompute ``Exp(d_i)`` from the ledger counters exactly as in Eq. (5)."""
+    return _exposure_from_counters(ledger["docs"][doc_id],
+                                   ledger["config"]["alpha"])
+
+
 def exposure(ledger: dict, doc_id: str) -> float:
-    """Return ``Exp(d_i) = α_1 n_i^ret + α_2 n_i^ctx + α_3 n_i^align``."""
-    a1, a2, a3 = ledger["config"]["alpha"]
-    r = ledger["docs"][doc_id]
-    return a1 * r["n_ret"] + a2 * r["n_ctx"] + a3 * r["n_align"]
+    """Return the history-aware exposure state used by downstream modules.
+
+    By default this equals :func:`raw_exposure`. If callers explicitly apply
+    :func:`decay_exposure`, the cached value is softened for the next turn
+    while raw counters remain available for auditing.
+    """
+    return ledger["docs"][doc_id].get("exposure", raw_exposure(ledger, doc_id))
+
+
+def normalized_exposure(ledger: dict, doc_id: str) -> float:
+    """Return a bounded ``Exp_norm(d_i)`` for ``Φ`` in Module 1.
+
+    The paper defines exposure as a cumulative state, while retrieval scoring
+    needs comparable ``[0, 1]`` terms. We normalize against the largest current
+    exposure, falling back to ``1`` before any document has been touched.
+    """
+    max_exp = max((exposure(ledger, did) for did in ledger["docs"]),
+                  default=0.0)
+    return min(1.0, exposure(ledger, doc_id) / max(1.0, max_exp))
 
 
 def total_used(ledger: dict, doc_id: str) -> float:
@@ -109,33 +136,46 @@ def global_remaining(ledger: dict) -> float:
     """``ε_global − max_i ε_i^(1:T)`` (worst-case per-document residual)."""
     if not ledger["docs"]:
         return ledger["config"]["eps_global"]
-    return ledger["config"]["eps_global"] - max(
+    return max(0.0, ledger["config"]["eps_global"] - max(
         total_used(ledger, did) for did in ledger["docs"]
-    )
+    ))
 
 
-def charge_retrieval(ledger: dict, doc_id: str, delta_eps: float) -> None:
-    """Apply ``Δε_i^{ret,t}`` (Module 1)."""
+def charge_retrieval(ledger: dict, doc_id: str, delta_eps: float) -> float:
+    """Apply ``Δε_i^{ret,t}`` (Module 1) and return the actual charged ε."""
     r = ledger["docs"][doc_id]
+    before = r["eps_ret_used"]
     r["n_ret"] += 1
     r["eps_ret_used"] = min(r["eps_ret_cap"], r["eps_ret_used"] + delta_eps)
-    r["exposure"] = exposure(ledger, doc_id)
+    r["exposure"] += ledger["config"]["alpha"][0]
+    return r["eps_ret_used"] - before
 
 
-def charge_transform(ledger: dict, doc_id: str, delta_eps: float) -> None:
-    """Apply ``Δε_i^{trans,t}`` (Module 2)."""
+def charge_transform(ledger: dict, doc_id: str, delta_eps: float) -> float:
+    """Apply ``Δε_i^{trans,t}`` and context exposure; return charged ε."""
     r = ledger["docs"][doc_id]
+    before = r["eps_trans_used"]
     r["n_ctx"] += 1
     r["eps_trans_used"] = min(r["eps_trans_cap"], r["eps_trans_used"] + delta_eps)
-    r["exposure"] = exposure(ledger, doc_id)
+    r["exposure"] += ledger["config"]["alpha"][1]
+    return r["eps_trans_used"] - before
 
 
-def charge_generation(ledger: dict, doc_id: str, delta_eps: float) -> None:
-    """Apply ``Δε_i^{gen,t}`` (Module 3)."""
+def charge_generation(ledger: dict, doc_id: str, delta_eps: float,
+                      align_weight: float = 1.0) -> float:
+    """Apply ``Δε_i^{gen,t}`` and output-alignment exposure (Module 3).
+
+    ``align_weight`` corresponds to the paper's document-token contribution
+    estimate ``e_i^(t)``. It is allowed to be fractional because a generated
+    answer may be aligned with several sanitized evidence documents.
+    """
     r = ledger["docs"][doc_id]
-    r["n_align"] += 1
+    before = r["eps_gen_used"]
+    align_weight = max(0.0, min(1.0, align_weight))
+    r["n_align"] += align_weight
     r["eps_gen_used"] = min(r["eps_gen_cap"], r["eps_gen_used"] + delta_eps)
-    r["exposure"] = exposure(ledger, doc_id)
+    r["exposure"] += ledger["config"]["alpha"][2] * align_weight
+    return r["eps_gen_used"] - before
 
 
 def decay_exposure(ledger: dict, decay: float) -> None:
@@ -171,7 +211,8 @@ def full_dump(ledger: dict) -> Dict[str, dict]:
     for did, r in ledger["docs"].items():
         out[did] = {
             **r,
-            "exposure_recomputed": exposure(ledger, did),
+            "exposure_recomputed": raw_exposure(ledger, did),
+            "exposure_used": exposure(ledger, did),
             "eps_used_total": total_used(ledger, did),
             "eps_remaining_global": remaining(ledger, did, "all"),
         }

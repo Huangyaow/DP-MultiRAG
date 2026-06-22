@@ -1,7 +1,7 @@
-"""DP-MultiRAG: History-Aware Differential Privacy RAG.
+"""DP-MultiRAG: History-Aware Differential Privacy for Multi-Turn RAG.
 
-The package exposes the four modules of the DP-MultiRAG paper as plain
-Python functions and a high-level pipeline that runs one turn end-to-end:
+The package exposes the four modules of the DP-MultiRAG paper and a
+high-level pipeline for one interaction turn:
 
     Module 1 — Exposure-aware Retrieval Control     (`retrieval.py`)
     Module 2 — Controlled Evidence Utilization      (`evidence.py`)

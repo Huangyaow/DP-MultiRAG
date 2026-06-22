@@ -25,7 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--api-key",
                    default=os.getenv("OPENAI_API_KEY", "sk-anything"))
     g.add_argument("--model",
-                   default=os.getenv("OPENAI_MODEL", "qwen3-30b"))
+                   default=os.getenv("OPENAI_MODEL", "qwen3-32b"))
 
     g = p.add_argument_group("Data")
     here = os.path.dirname(os.path.abspath(__file__))
@@ -43,8 +43,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="fraction of ε_global for evidence transformation.")
     g.add_argument("--eps-gen-frac", type=float, default=0.50,
                    help="fraction of ε_global for generation.")
-    g.add_argument("--decay", type=float, default=0.92,
-                   help="cross-turn decay applied to cached exposure.")
+    g.add_argument("--decay", type=float, default=1.0,
+                   help=("optional cross-turn decay on cached exposure; "
+                         "1.0 matches the cumulative ledger in the paper."))
     g.add_argument("--alpha1", type=float, default=1 / 3,
                    help="weight α_1 for n_i^ret in Exp(d_i).")
     g.add_argument("--alpha2", type=float, default=1 / 3,
@@ -55,6 +56,8 @@ def build_parser() -> argparse.ArgumentParser:
     g = p.add_argument_group("Module 1 — retrieval")
     g.add_argument("--top-k", type=int, default=10,
                    help="K in Gumbel Top-K.")
+    g.add_argument("--delta-ret", type=float, default=1.0,
+                   help="score sensitivity Δ_ret in Gumbel(0, 2Δ_ret/ε_ret).")
     g.add_argument("--gamma", type=float, default=0.4,
                    help="utility weight γ.")
     g.add_argument("--beta", type=float, default=0.6,

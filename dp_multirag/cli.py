@@ -58,10 +58,11 @@ def render_turn(t: int, n_turns: int, raw_q: str, ret_cfg: dict, result,
     print(f"{C_MAG}[User]{C_END} {raw_q}")
     step("M1 Rewrite", result.q_tilde)
     step("M1 Score+Φ",
-         "  ".join(f"{i}:Score={s:+.2f}(Rel={r:.2f},Φ={p:.2f})"
-                   for i, s, r, p in zip(result.selected_ids,
-                                          result.scores,
-                                          result.rel, result.phi)))
+         "  ".join(f"{i}:Score={s:+.2f},s~={ns:+.2f}(Rel={r:.2f},Φ={p:.2f})"
+                   for i, s, ns, r, p in zip(result.selected_ids,
+                                             result.scores,
+                                             result.noisy_scores,
+                                             result.rel, result.phi)))
     step("M1 GumbelTopK", f"selected={result.selected_ids}", color=C_BLU)
     step("M1 Δε^ret",
          "  ".join(f"{i}:{d:.3f}" for i, d in
@@ -101,6 +102,10 @@ def render_turn(t: int, n_turns: int, raw_q: str, ret_cfg: dict, result,
         step("M3 Δε^gen",
              "  ".join(f"{i}:{v:.3f}" for i, v in
                        result.delta_eps_gen_per_doc.items()) or "(none)",
+             color=C_DIM)
+        step("M3 Align",
+             "  ".join(f"{i}:{v:.3f}" for i, v in
+                       result.alignment_per_doc.items()) or "(none)",
              color=C_DIM)
         ans_color = C_RED if not result.delta_eps_gen_per_doc else C_GRN
         step("M3 Answer", result.answer, color=ans_color)
@@ -166,6 +171,7 @@ def main(argv: Optional[list] = None) -> None:
     cfg = {
         **budgets_t,
         "top_k": args.top_k,
+        "delta_ret": args.delta_ret,
         "gamma": args.gamma,
         "beta": args.beta,
         "w": (args.w1, args.w2, args.w3),
